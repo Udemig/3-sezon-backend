@@ -1,6 +1,8 @@
 // modülü bu dosyaya çağırma
 const http = require('http');
 const fs = require('fs');
+const url = require('url');
+
 // farklı dosyadan export edilen fonksiyonu buraya çağırdık
 const replaceTemplate = require('./modules/replaceTemplate');
 
@@ -51,8 +53,12 @@ let data = fs.readFileSync('./dev-data/data.json', 'utf-8');
 const dataObj = JSON.parse(data);
 
 const server = http.createServer((req, res) => {
+  // url'i parçalar ayırdık
+  const { pathname, query } = url.parse(req.url, true);
+
   // eğerki yukarıda tanımlanmayan sayflara giderse
-  switch (req.url) {
+  switch (pathname) {
+    // ansayfa
     case '/overview':
       // meyveler dizsini dö ve her bir meyve verisi için
       // meyeveye özel bir kart html'i oluştur
@@ -69,11 +75,19 @@ const server = http.createServer((req, res) => {
 
       return res.end(tempOverview);
 
+    // ürün detay sayfası
     case '/product':
-      return res.end(tempProduct);
+      // 1) diziden doğru elemanı bul
+      const item = dataObj.find((item) => item.id == query.id);
+
+      // 2) template'i bulunan elemanın verilerine göre güncelle
+      const output = replaceTemplate(tempProduct, item);
+
+      // 3) güncel template'i client'a gönder
+      return res.end(output);
 
     default:
-      return res.end('Aradaığınız sayfa bulunamadı');
+      return res.end('Aradaiginiz sayfa bulunamadi');
   }
 });
 
