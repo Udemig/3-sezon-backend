@@ -31,14 +31,44 @@ exports.getTour = (req, res) => {
 
 // Turu Günceller
 exports.updateTour = (req, res) => {
-  // todo turu ve json'dosyasını güncelle
+  // elemnın güncellenicek olan veileri
+  const updatedData = req.body;
 
-  // cevap gönder
-  res.status(200).json({
-    status: 'Tur Başarıyla Güncellendi',
-    tour: 'Güncel Tur Verisi',
-  });
+  // güncelenneicek turun id'sini alma
+  const id = req.params.id;
+
+  // güncelllenicek elemanın dizideki sırasını bul
+  const index = tours.findIndex((i) => i.id === id);
+
+  // dizideki id'sini bildiğimiz elemanın updatedData içersinde gelen değerlerini
+  // güncelle updatedData içersinde olamyan değerleride sabir bırakmam gerekli
+  const updatedTour = { ...req.tour, ...updatedData };
+
+  // diziyi güncelle
+  tours.splice(index, 1, updatedTour);
+
+  // json dosyasını güncelle
+  fs.writeFile(
+    `${__dirname}/../dev-data/data/tours-simple.json`,
+    JSON.stringify(tours),
+    (err) => {
+      if (err) {
+        // cevap gönder
+        res.status(404).json({
+          status: 'Güncelleme işlemi başarısız oldu',
+        });
+      } else {
+        // cevap gönder
+        res.status(200).json({
+          status: 'Tur Başarıyla Güncellendi',
+          tour: updatedTour,
+        });
+      }
+    }
+  );
 };
+
+console.log(__dirname);
 
 // Yeni Tur Oluştur
 exports.createTour = (req, res) => {
@@ -68,9 +98,9 @@ exports.deleteTour = (req, res) => {
   const newTours = tours.filter((i) => i.id !== req.params.id);
 
   // json dosyasını güncelle
-  JSON.writeFile(
+  fs.writeFile(
     `${__dirname}/../dev-data/data/tours-simple.json`,
-    newTours,
+    JSON.stringify(newTours),
     () => {
       res.status(204).send();
     }

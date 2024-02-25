@@ -31,13 +31,12 @@ app
   .post(createTour);
 
 // id varmı kontrol edicek yoksa sonraki adıma geçmeyecek
-app.use(controlMiddleware);
 
 app
   .route('/api/v1/tours/:id')
-  .get(getTour)
-  .patch(updateTour)
-  .delete(deleteTour);
+  .get(controlMiddleware, getTour)
+  .patch(controlMiddleware, updateTour)
+  .delete(controlMiddleware, deleteTour);
 
 app.listen(PORT, () => {
   console.log(`Server ${PORT} portunu dinlemeye başladı`);
