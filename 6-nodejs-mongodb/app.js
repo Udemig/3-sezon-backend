@@ -1,9 +1,16 @@
 const express = require('express');
+var morgan = require('morgan');
+const tourRouter = require('./routes/tourRoutes');
 
 const app = express();
 
-app.get('/api/tours', (req, res) => {
-  res.status(200).json('Veri');
-});
+// istek detylarını konsola yazan middlware
+app.use(morgan('dev'));
+
+// body headers vs. gelen json verisini js'de kullanbilir formata getirir
+app.use(express.json());
+
+// tour route'larını projeye tanıt
+app.use(tourRouter);
 
 module.exports = app;
