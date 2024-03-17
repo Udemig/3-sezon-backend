@@ -9,7 +9,7 @@ const {
   aliasTopTours,
   getMonthlyPlan,
 } = require('../controllers/tourControllers');
-
+const { protect } = require('../controllers/authControllers');
 // router oluşturma
 const router = express.Router();
 
@@ -27,13 +27,9 @@ router.route('/tour-stats').get(getTourStats);
 router.route('/monthly-plan/:year').get(getMonthlyPlan);
 
 // router için yolları tanımlama
-router.route('/api/tours').get(getAllTours).post(createTour);
+router.route('/').get(protect, getAllTours).post(createTour);
 
-router
-  .route('/api/tours/:id')
-  .get(getTour)
-  .delete(deleteTour)
-  .patch(updateTour);
+router.route('/:id').get(getTour).delete(deleteTour).patch(updateTour);
 
 // router'ı app'e tanıtmak için export et
 module.exports = router;

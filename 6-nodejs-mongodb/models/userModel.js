@@ -1,5 +1,6 @@
 const { Schema, model } = require('mongoose');
 const validator = require('validator');
+const bcrypt = require('bcrypt');
 
 // kullanıcı şemasını oluştur
 const userSchema = new Schema({
@@ -53,5 +54,18 @@ const userSchema = new Schema({
   },
 });
 
+// Veritbanına kullanıcyı kaydetmeden önce password
+// alınını şifreleme algoritmalarından geçir ve şifrele
+// passwordConfirm alanını kaldır
+userSchema.pre('save', async function () {
+  //* Şifreyi hash ve saltla
+  this.password = await bcrypt.hash(this.password, 12);
+
+  //* Onay şifreisni kaldır
+  this.passwordConfirm = undefined;
+});
+
 // kullanıcı modelini oluştur
-exports.User = model('User', userSchema);
+const User = model('User', userSchema);
+
+module.exports = User;
