@@ -1,8 +1,9 @@
-const Tour = require('../models/tourModel');
-const APIFeatures = require('../utils/apiFeatures');
+const Tour = require("../models/tourModel");
+const APIFeatures = require("../utils/apiFeatures");
+const AppError = require("../utils/appError");
 
 // aylık planı hesaplar
-exports.getMonthlyPlan = async (req, res) => {
+exports.getMonthlyPlan = async (req, res, next) => {
   try {
     // parametre olarak gelen yılı al
     const year = Number(req.params.year);
@@ -10,7 +11,7 @@ exports.getMonthlyPlan = async (req, res) => {
     // Raporlama adımları
     const plan = await Tour.aggregate([
       //1) turların başlangıç tarihlerini böl her turun bir tarihi olsun
-      { $unwind: '$startDates' },
+      { $unwind: "$startDates" },
       //2) belirli bir yılda başlayanları al
       {
         $match: {
@@ -23,14 +24,14 @@ exports.getMonthlyPlan = async (req, res) => {
       // 3) turları ay'lara göre gruplandır
       {
         $group: {
-          _id: { $month: '$startDates' }, // aylara göre grupla
+          _id: { $month: "$startDates" }, // aylara göre grupla
           numTourStarts: { $sum: 1 }, // her ay başlayan tur sayısını hesapla
-          tours: { $push: '$name' }, // her turun ismini diziye aktar
+          tours: { $push: "$name" }, // her turun ismini diziye aktar
         },
       },
       // 4) rapordaki nesnelere ay elemanı ekle
       {
-        $addFields: { month: '$_id' },
+        $addFields: { month: "$_id" },
       },
       // 5) rapordaki nesnlerden eleman çıkarma
       {
@@ -47,30 +48,27 @@ exports.getMonthlyPlan = async (req, res) => {
     ]);
 
     res.status(200).json({
-      message: 'Aylık plan başarıyla oluşturuldu',
+      message: "Aylık plan başarıyla oluşturuldu",
       data: plan,
     });
   } catch (err) {
-    res.status(400).json({
-      message: 'Plan oluşturulurken hata oldu',
-      error: err,
-    });
+    return next(new AppError("Plan oluşturulurkeen hata oluştu", 400));
   }
 };
 
 // Alias Route (Takma Ad)
 exports.aliasTopTours = (req, res, next) => {
   // get all tours'un en iyi beş tanesini vermesi için gerekli parametreleri ekledik
-  req.query.sort = '-ratingsAvarage,price';
-  req.query.fields = 'name,price,ratingsAverage,summary,difficulty';
-  req.query.limit = '5';
+  req.query.sort = "-ratingsAvarage,price";
+  req.query.fields = "name,price,ratingsAverage,summary,difficulty";
+  req.query.limit = "5";
 
   // bir sonraki adım olan getAllTour'un çalışmasını söyledik
   next();
 };
 
 // İstatisktikleri hesaplar
-exports.getTourStats = async (req, res) => {
+exports.getTourStats = async (req, res, next) => {
   try {
     // Aggregation Pipeline
     // Raporlama Adımları
@@ -82,12 +80,12 @@ exports.getTourStats = async (req, res) => {
       // 2.Adım ) zorluklarına göre gruplandır ve ortalama değerlerini hesapla
       {
         $group: {
-          _id: '$difficulty',
+          _id: "$difficulty",
           elemanSayisi: { $sum: 1 }, // döküman sayısı kadar toplama yapar
-          avgRating: { $avg: '$ratingsAverage' },
-          avgPrice: { $avg: '$price' },
-          minPrice: { $min: '$price' },
-          maxPrice: { $max: '$price' },
+          avgRating: { $avg: "$ratingsAverage" },
+          avgPrice: { $avg: "$price" },
+          minPrice: { $min: "$price" },
+          maxPrice: { $max: "$price" },
         },
       },
       // 3.Adım ) gruplanan veriyi fiyatlarana göre artan sırala
@@ -104,14 +102,14 @@ exports.getTourStats = async (req, res) => {
 
     res
       .status(200)
-      .json({ message: 'Raporunuz başarıyla oluşturuldu', data: stats });
+      .json({ message: "Raporunuz başarıyla oluşturuldu", data: stats });
   } catch (err) {
-    res.status(200).json({ message: 'İstatistik hesaplanamadı', err: err });
+    return next(new AppError("İsattistik oluşturulamadı", 400));
   }
 };
 
 // bütün turları alır
-exports.getAllTours = async (req, res) => {
+exports.getAllTours = async (req, res, next) => {
   try {
     // apiFeatures class'ından örnek oluşturduk ve içerisndeki istediğimiz api özelliklerini çağırdık
     const features = new APIFeatures(Tour.find(), req.query)
@@ -124,21 +122,17 @@ exports.getAllTours = async (req, res) => {
     const tours = await features.query;
 
     res.status(200).json({
-      message: 'Veriler başrıyla alındı',
+      message: "Veriler başrıyla alındı",
       results: tours.length,
       data: tours,
     });
   } catch (err) {
-    console.log(err);
-
-    res.status(400).json({
-      message: 'Üzgünüz verileri alırken bir hata oluştu.',
-    });
+    return next(new AppError("Sorry, there was an error getting data", 400));
   }
 };
 
 // yeni bir tur oluşturur
-exports.createTour = async (req, res) => {
+exports.createTour = async (req, res, next) => {
   //* 1.yol
   // const yeniTur = new Tour({ ...req.body });
   // yeniTur.save();
@@ -149,17 +143,14 @@ exports.createTour = async (req, res) => {
 
     res
       .status(200)
-      .json({ message: 'Veri başarıyla kaydedildi', data: newTour });
+      .json({ message: "Veri başarıyla kaydedildi", data: newTour });
   } catch (err) {
-    res.status(400).json({
-      message: 'Üzgünüz veriyi kadederken bir hata oluştu.',
-      err: err,
-    });
+    return next(new AppError("Tur oluşturulurken bir hata oluştu", 400));
   }
 };
 
 // sadece bir tur alır
-exports.getTour = async (req, res) => {
+exports.getTour = async (req, res, next) => {
   try {
     //* 1.yol) findOne(): id dışarısında değerleri de destekler
     // const foundTour = await Tour.findOne({ _id: req.params.id });
@@ -167,35 +158,32 @@ exports.getTour = async (req, res) => {
     //* 2.yol) findById(): sadeceye id'yi destekler
     const founddTour = await Tour.findById(req.params.id);
 
-    res.status(200).json({ message: 'Tur bulundu', data: founddTour });
+    res.status(200).json({ message: "Tur bulundu", data: founddTour });
   } catch (err) {
-    res.status(400).json({ message: 'Üzgünüz turu alırken bir hata oluştu' });
+    return next(new AppError("Tur verisi alınırken bir hata oluştu", 400));
   }
 };
 
 // bir turu günceller
-exports.updateTour = async (req, res) => {
+exports.updateTour = async (req, res, next) => {
   try {
     // new parametresi ile döndürlecek olan değerin dökümanın eski değil yeni değerleri olmasını istedik
     const updatedTour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
     });
 
-    res.status(200).json({ message: 'Tur güncellendi', data: updatedTour });
+    res.status(200).json({ message: "Tur güncellendi", data: updatedTour });
   } catch (err) {
-    console.log(err);
-    res
-      .status(400)
-      .json({ message: 'Üzgünüz turu güncellerken bir hata oluştu' });
+    return next(new AppError("Tur güncellenirken bir hata oluştu", 400));
   }
 };
 
 // bir tur kaldırır
-exports.deleteTour = async (req, res) => {
+exports.deleteTour = async (req, res, next) => {
   try {
     await Tour.findByIdAndDelete(req.params.id);
     res.status(204).json({});
   } catch (err) {
-    res.status(400).json({ message: 'Sİlme işlemi başarısız' });
+    return next(new AppError("Tur kaldırılırken bir hata oluştu", 400));
   }
 };

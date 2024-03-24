@@ -18,16 +18,17 @@
 
 # Authentication (Kimlik Doğrulama)
 
-- Bir kullanıcnn kimliğini doğrulamak için geçtiği süreçtir.
+- Bir kullanıcın kimliğini doğrulamak için geçtiği süreçtir.
 - Ör: e posta şifre / google hesabı / parmak izi
 - Kimlik doğrulama, bir kullanıcının sisteme erişim talebini gerçekleştiren ilk adımdır.
 
 # Authorization (Yetkilendirme)
 
-- Bir kullanıcnın sistemeizin blirli kaynalaarına erişiminin kontrol etme sürecididr.
+- Bir kullanıcnın sistemeizin belirli kaynaklarına erişiminin kontrol etme sürecididr.
 - Yetkilendirme kimklik doğrulama sürecinin ardından devreye girer.
 - Kimliğini doğruladığımız kullanıcın ne tür eylermleri gerçekleştirebileceğini belirler.
 - Ör:
+- - kullanıncın oturmu açıksa bazı işlevleri erişebilirken kapalıysa erişemez
 - - user rolü sadece okuma yapabilir.
 - - guide ve lead-guide rolü saedece kendi oluşturdukları turlarda crud işlemi yapabilir.
 - - admin rolü bütün turlarda crud işlemleri yapabilir.
