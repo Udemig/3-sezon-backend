@@ -1,6 +1,7 @@
 const { Schema, model } = require("mongoose");
 const validator = require("validator");
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 
 // kullanıcı şemasını oluştur
 const userSchema = new Schema({
@@ -54,12 +55,19 @@ const userSchema = new Schema({
   },
 
   passwordChangedAt: Date,
+
+  passwordResetToken: String,
+
+  passwordResetExpires: Date,
 });
 
 // Veritbanına kullanıcyı kaydetmeden önce password
 // alınını şifreleme algoritmalarından geçir ve şifrele
 // passwordConfirm alanını kaldır
-userSchema.pre("save", async function () {
+userSchema.pre("save", async function (next) {
+  // daha önce şifre hashelndiyse bu fonksiyon çalışmasın
+  if (!this.isModified("password") || this.isNew) return next();
+
   //* Şifreyi hash ve saltla
   this.password = await bcrypt.hash(this.password, 12);
 
@@ -75,7 +83,7 @@ userSchema.methods.correctPass = async function (candidatePass, userPass) {
 
 // jwt oluşturlma tarihinden sonra şifre değiştirilimiş mi kontrol et
 userSchema.methods.controlPassDate = function (JWTTime) {
-  if (JWTTime) {
+  if (this.passwordChangedAt && JWTTime) {
     // şifre değiştirme tarihini saniye formatına çevirme
     const changeTime = parseInt(this.passwordChangedAt.getTime() / 1000);
 
@@ -86,6 +94,27 @@ userSchema.methods.controlPassDate = function (JWTTime) {
   }
 
   return false;
+};
+
+// şifre sıfırlama tokeni oluştur
+// bu token daha sonra kullanıcı mailine gönderilecek ve kullanıcı şifersini
+// sıfırlarken kimliğini doğrulama maçlı bu tokeni kullanacak
+// 10 dakikkalık geçerlilk süresi olucak
+userSchema.methods.createPasswordResetToken = function () {
+  //1) 32 byte'lık rastgele veri oluşturur ve onu hexadecimal bir diziye dönüştürür
+  const resetToken = crypto.randomBytes(32).toString("hex");
+
+  // 2) tokeni hashle ve user dökümanı içerisne ekle
+  this.passwordResetToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  // 3) tokenin son geçerlilik tarihihni kullanıcnın düökümanına ekle
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+
+  // 4) tokenin normal halini return et
+  return resetToken;
 };
 
 // kullanıcı modelini oluştur
