@@ -76,3 +76,69 @@ Neden kullanılıyor
 2. Kendine Yetrlilik: Kullanıcı bilgilerini taşırken bu bilgilerin doğrulanmasını sağlayacak tüm bilgileri içeriir. Bu sunucun bir veri depolamay gerek duymadan doğrulama yapmasını sağlar ve bu sayede gerkesiz sorguların önüne geçeriz.
 
 3. Güvenlik: JWT'ler dijital imza gibi yöntemlerle güvenli bir şekilde imzalanabilir. Bu jwt'nin değiştirlmediğini ve güvenli bir şekilde taşındığını doğrular
+
+# Güvenlik Paketleri
+
+- `express-rate-limit`: aynı ip adresinden gelen istekleri sınırlar
+- `helmet`: güvenlik header'ları ekler
+- `express-mongo-sanitize`: body/aparm ile enejekte edilemey çalışılan komutları bozar
+- `xss clean`: html içerisnde enjekte eidlmeye çalışan kötü amaçlıi scriptlere yakalar ve bozar
+- `hpp`: parametre kirliliğini önler
+
+# Data Modeling
+
+Data modelling, bir biligi sisteminde kullanılan veir yapılarının, kısıtlamalarını ilişkilerini ve diğer önemli unuslarları tanımladığımız sürece verdiğimiz isimdir. Bu süreç projenin ihtiyaçlarını karşılama adına veritabanı tasarımını planlamak için kullanılır. Amaçı karmaşik veri setlerini daha anlışılabilir, düzenli erişilebilir bir şeklikde organiz etmek için kullanılan bir süreçtir.
+
+# Veri Modelleme Süreci
+
+1. Gereksinimleri Belirle
+
+2. Kavramsal Belirleme
+
+3. Fiziksel Modelleme
+
+4. Uygulam Geliştirme
+
+# Veriler Arasında Kurulan İlişkiler
+
+- Veriler arasında farklı türlerde ilişkiler kurulabilir
+
+1. Referancing (Referans) / Normalization
+
+- Tanım: Referans, belirli belgedeki verileri başka bir belgeye referanslar kullanarak ilişkilendirmeye yarar. Yani, iki belge arasında ilişki vardır, ancak geçek veri bir belgede saklanırklen diğer belgede sadce gerçek verinin referansı bulunur
+
+2. Embedding (Gömme) / Denormalization:
+
+- Tanım: Belirli bir belgenin içerisndeki diğer belgeri duğrudan gömülü olarak tanımlaya yarar
+
+---
+
+`user document` = {
+id:58,
+name:"Ahmet",
+surname:"Yıldız":
+phone:5446789223
+}
+
+## Referans Örneği
+
+`comment document` = {
+id:146,
+text:"Bu hizmetten çok memnun kaldım",
+createdAt:23.09.2023,
+user_id:58
+}
+
+# Embeding Örneği
+
+`comment document` = {
+id:146,
+text:"Bu hizmetten çok memnun kaldım",
+createdAt:23.09.2023,
+user:{
+id:58,
+name:"Ahmet",
+surname:"Yıldız":
+phone:5446789223
+}
+}

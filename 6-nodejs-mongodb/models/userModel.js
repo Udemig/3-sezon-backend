@@ -1,51 +1,51 @@
-const { Schema, model } = require("mongoose");
-const validator = require("validator");
-const bcrypt = require("bcrypt");
-const crypto = require("crypto");
+const { Schema, model } = require('mongoose');
+const validator = require('validator');
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 
 // kullanıcı şemasını oluştur
 const userSchema = new Schema({
   name: {
     type: String,
-    required: [true, "Lütfen isminizi giriniz"],
+    required: [true, 'Lütfen isminizi giriniz'],
   },
 
   email: {
     type: String,
-    required: [true, "Lütfen mail giriniz"],
+    required: [true, 'Lütfen mail giriniz'],
     unique: true,
     lowercase: true,
-    validate: [validator.isEmail, "Lütfen geçerli bir email giriniz"],
+    validate: [validator.isEmail, 'Lütfen geçerli bir email giriniz'],
   },
 
   photo: {
     type: String,
-    default: "defaultpic.webp",
+    default: 'defaultpic.webp',
   },
 
   password: {
     type: String,
-    required: [true, "Lütfen şifre giriniz"],
-    minLength: [8, "Şifre en az 8 karakter içermeli"],
-    validate: [validator.isStrongPassword, "Şifreniz yeteince güçlü değil"],
+    required: [true, 'Lütfen şifre giriniz'],
+    minLength: [8, 'Şifre en az 8 karakter içermeli'],
+    validate: [validator.isStrongPassword, 'Şifreniz yeteince güçlü değil'],
     select: false, // kullanıcı verisi çağrıldığında göndermediğimiz değer
   },
 
   passwordConfirm: {
     type: String,
-    required: [true, "Lütfen şifre onayını giriniz"],
+    required: [true, 'Lütfen şifre onayını giriniz'],
     validate: {
       validator: function (value) {
         return value == this.password;
       },
-      message: "Onay şifreniz eşleşmiyor",
+      message: 'Onay şifreniz eşleşmiyor',
     },
   },
 
   role: {
     type: String,
-    enum: ["user", "guide", "lead-guide", "admin"],
-    default: "user",
+    enum: ['user', 'guide', 'lead-guide', 'admin'],
+    default: 'user',
   },
 
   active: {
@@ -61,12 +61,12 @@ const userSchema = new Schema({
   passwordResetExpires: Date,
 });
 
-// Veritbanına kullanıcyı kaydetmeden önce password
+//1) Veritbanına kullanıcyı kaydetmeden önce password
 // alınını şifreleme algoritmalarından geçir ve şifrele
 // passwordConfirm alanını kaldır
-userSchema.pre("save", async function (next) {
+userSchema.pre('save', async function (next) {
   // daha önce şifre hashelndiyse bu fonksiyon çalışmasın
-  if (!this.isModified("password") || this.isNew) return next();
+  if (!this.isModified('password')) return next();
 
   //* Şifreyi hash ve saltla
   this.password = await bcrypt.hash(this.password, 12);
@@ -75,13 +75,33 @@ userSchema.pre("save", async function (next) {
   this.passwordConfirm = undefined;
 });
 
-// Hashlenmiş şifre ile normal şifreyi karşılaştırma özelliğini bir method olarak tanımlayalım
+//2) todo şifre değişince tarihi güncelle
+userSchema.pre('save', function (next) {
+  // eğer şifre değişmediyse veya dökümanı yeni oluşturduysa bir şey yapma
+  if (!this.isModified('password') || this.isNew) return next();
+
+  // şifre sonrdaan değiştiyse şifre değişim tarihini belirle
+  this.passwordChangedAt = Date.now() - 1000;
+
+  next();
+});
+
+//3) kullanıcı veritbanından alınmaya çalışıldığında hesap inaktif ise erişimi engelle
+userSchema.pre(/^find/, function (next) {
+  // bundan sonraki işlemde yapılcak olan sorguda active olamyanları dahil etme koşulu giriyoruz
+  this.find({ active: { $ne: false } });
+
+  // sonraki işleme devam et
+  next();
+});
+
+//4) Hashlenmiş şifre ile normal şifreyi karşılaştırma özelliğini bir method olarak tanımlayalım
 // tanımladığımız bu method sadece user belgeleri üzerinden erişilebilir
 userSchema.methods.correctPass = async function (candidatePass, userPass) {
   return await bcrypt.compare(candidatePass, userPass);
 };
 
-// jwt oluşturlma tarihinden sonra şifre değiştirilimiş mi kontrol et
+//5) jwt oluşturlma tarihinden sonra şifre değiştirilimiş mi kontrol et
 userSchema.methods.controlPassDate = function (JWTTime) {
   if (this.passwordChangedAt && JWTTime) {
     // şifre değiştirme tarihini saniye formatına çevirme
@@ -96,19 +116,19 @@ userSchema.methods.controlPassDate = function (JWTTime) {
   return false;
 };
 
-// şifre sıfırlama tokeni oluştur
+//6) şifre sıfırlama tokeni oluştur
 // bu token daha sonra kullanıcı mailine gönderilecek ve kullanıcı şifersini
 // sıfırlarken kimliğini doğrulama maçlı bu tokeni kullanacak
 // 10 dakikkalık geçerlilk süresi olucak
 userSchema.methods.createPasswordResetToken = function () {
   //1) 32 byte'lık rastgele veri oluşturur ve onu hexadecimal bir diziye dönüştürür
-  const resetToken = crypto.randomBytes(32).toString("hex");
+  const resetToken = crypto.randomBytes(32).toString('hex');
 
   // 2) tokeni hashle ve user dökümanı içerisne ekle
   this.passwordResetToken = crypto
-    .createHash("sha256")
+    .createHash('sha256')
     .update(resetToken)
-    .digest("hex");
+    .digest('hex');
 
   // 3) tokenin son geçerlilik tarihihni kullanıcnın düökümanına ekle
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
@@ -118,6 +138,6 @@ userSchema.methods.createPasswordResetToken = function () {
 };
 
 // kullanıcı modelini oluştur
-const User = model("User", userSchema);
+const User = model('User', userSchema);
 
 module.exports = User;
