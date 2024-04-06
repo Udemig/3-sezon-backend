@@ -92,7 +92,44 @@ const tourSchema = new Schema(
     },
 
     hour: Number,
+
+    // başlangıç noktası
+    startLocation: {
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point'],
+      },
+      description: String,
+      coordinates: [Number],
+      adress: String,
+    },
+
+    //* EMBEDDING
+    //* Turun ziyaret noktaları dizi olarak tanımlanmalı
+    locations: [
+      {
+        type: {
+          type: String,
+          default: 'Point',
+          enum: ['Point'],
+        },
+        coordinates: [Number],
+        description: String,
+        day: Number,
+      },
+    ],
+
+    //* Child Refferance
+    //* Turun ilgili reheberleri kullanıcların dizisindeki id'leri ile referans gösterilmeli
+    guides: [
+      {
+        type: Schema.ObjectId, // referans tanımında tip herzaman ObjectId'dir
+        ref: 'User', // hangi model ile tanımlanmış verinin referansını aldığımızı belirtiyoruz
+      },
+    ],
   },
+
   // şema ayarları (sanal değrleri aktif ettik)
   {
     toJSON: { virtuals: true },

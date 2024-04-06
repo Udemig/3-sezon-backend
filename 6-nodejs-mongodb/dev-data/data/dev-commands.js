@@ -1,5 +1,6 @@
 const fs = require('fs');
 const Tour = require('../../models/tourModel');
+const User = require('../../models/userModel');
 const mongoose = require('mongoose');
 require('dotenv').config({ path: './config.env' });
 
@@ -14,14 +15,16 @@ mongoose
 // process.argv: node'da çalışan  komut satırının argümanlarını dizi şeklinde içeren bir nesnedir
 
 // turlar dosyasındaki verileri oku
-let tours = JSON.parse(fs.readFileSync(`${__dirname}/tours-simple.json`));
+let tours = JSON.parse(fs.readFileSync(`${__dirname}/tours.json`));
+let users = JSON.parse(fs.readFileSync(`${__dirname}/users.json`));
 
 // js formatına çevir
 
 //! dosyayadan verileri alıp kollkeisyona aktarırır
 const importData = async () => {
   try {
-    await Tour.insertMany(tours);
+    await Tour.create(tours, { validateBeforeSave: false });
+    await User.create(users, { validateBeforeSave: false });
     console.log('Bütün Veriler Aktarıldı');
   } catch (err) {
     console.log('Bir hata oluştu', err);
@@ -34,6 +37,7 @@ const importData = async () => {
 const deleteData = async () => {
   try {
     await Tour.deleteMany();
+    await User.deleteMany();
     console.log('Bütün veriler silindi');
   } catch (err) {
     console.log('Bir hata oluştu');

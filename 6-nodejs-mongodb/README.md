@@ -97,7 +97,7 @@ Data modelling, bir biligi sisteminde kullanılan veir yapılarının, kısıtla
 
 3. Fiziksel Modelleme
 
-4. Uygulam Geliştirme
+4. Uygulama Geliştirme
 
 # Veriler Arasında Kurulan İlişkiler
 
@@ -142,3 +142,34 @@ surname:"Yıldız":
 phone:5446789223
 }
 }
+
+# Verilerin birbiri arasındaki ilişki türleri
+
+- 1:1 (One To One): Bu ilişki türünde, bir kollekisyondaki döküman farklı kolleksiyondaki sadece bir dökümanla bağlantı kurabilir
+
+- 1:Many (One To Many): Bu ilişki türünde, bir kollekisyondaki döküman diğer kolleksiyondaki birden fazla döküman ile eşleşelebilir.
+
+- Many:Many (Many Many): Bu ilişki türünde, bir kolleksiyondaki birden çok döküman farklı kollleksiyondaki bir den çok dökümanla ilişkiye sahip olabilir
+
+# Hangi Durumlarda Embeddibg Hangi Durumda Refferencing Kullanılır?
+
+                        Embedding                                    Refferencing
+
+1. İlişki Tipi: 1:Few, 1:Many 1:Many, 1:Ton, Many:Many
+
+2. Erişim Durumu: Okuma daha yüksekse Veri çok güncelleniyorsa
+   Veri Çok değişmiyorsa Düşük (Okuma / Yazma) Oranı  
+   Yüksek (Okuma/Yazma) oranı
+
+3. Yakınlık Durumu: Dökümanlar birbiri ile çok alakalı Bazı durumlarda birlikte alınması
+   gerekir bazen tek tek de değerlendilir
+
+# Referans Tipleri
+
+1. Child Refferance (Çocuk Referansı):
+2. Parent Refferance (Ebevyn Referansı):
+3. TwoWay Refferance (Ebevyn Referansı):
+
+# Populate
+
+- Farklı kolleksiyonlar arasında oluşturulan ilişkilerde veriye erişmek için sorgularda kullanılan bir method. Populate, dökümanın içeriende referans olarak tanımlanmış bir alanı id'den yola çıkarak asıl kolleksiyondaki ilgili veriye erişir ve referans olarak tanımlanan id değerini değerinin yerine dökümanın verilerini getirir
