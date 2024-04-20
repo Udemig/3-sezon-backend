@@ -137,6 +137,13 @@ const tourSchema = new Schema(
   }
 );
 
+//! INDEX
+// Turları alırken fiyat ve rating ortalamasına göre filtre yapan kullanıcılara index sayesinde artık çok daha hızlı bir şekilde cevap vericez. Index yapılan değerler veritabanında belirlediğimiz yöne göre sırlanır ve sıralanmış hali saklanır (belirli bir alan kaplar) ve bu değere göre filtreleme yapıldığında mongodbnin, veriler zaten sıralı olduğu için bütün dökümanları kontrol etmesine gerek kalmaz sadece bulunan sayıda döküman incelenir bu sayede yüklenmesi süresini azaltırız
+tourSchema.index({ price: 1, ratingsAverage: -1 });
+
+// coğrafi ver iiçin indexleme
+tourSchema.index({ startLocation: '2dsphere' });
+
 //! Virtual Property (Sanal Değer)
 // Veri tabanında tutmamıza değmeyecek ama client tarafından
 // yapılan isteklerde göndermemiz gereken verileri veri tabanında tutmayıp
@@ -146,6 +153,14 @@ const tourSchema = new Schema(
 // fonksiyon hesaplama sonucu return edilen veri eklenicek olan sanal değer olur
 tourSchema.virtual('slug').get(function () {
   return this.name.toLowerCase().replace(/ /g, '-');
+});
+
+//! Vırtual Populate
+// normalde yorumları parent refferance ile turlara bağlamıştı ama bu yüzden turları aldığımız zaman o tura ait olan yorumlara erişemiyoruz.
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'tour', // dökümanın hangi alanına göre referans alıcaz
+  localField: '_id', // diğer dökümandaki alanın mevcut dökümandaki karşılığı olan alna
 });
 
 //! Document Middlware
@@ -174,6 +189,20 @@ tourSchema.post('updateOne', function (doc, next) {
 tourSchema.pre(/^find/, async function (next) {
   // find isteklerinde secret değeri tru olanları aradan çıkar
   this.find({ secret: { $ne: true } });
+
+  next();
+});
+
+//! Populate
+// sorgulardan önce middleware ile populate'i tanımlarız.
+// Mongodb'de populate bir belgedeki belirli bir alnın o alana referans verien diğer bir kolleksiyondaki belgelerle dolduruluması anlamına gelir. Yani populating, referansları gerçek verilerle doldurmayı sağlar.
+tourSchema.pre(/^find/, function (next) {
+  this.populate({
+    // doldurulması gereken alanın ismi
+    path: 'guides',
+    //doldururken istemediğimiz alanlar
+    select: '-__v -passwordResetToken -passwordResetExpires',
+  });
 
   next();
 });

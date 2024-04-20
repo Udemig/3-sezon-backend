@@ -2,6 +2,7 @@ const User = require('../models/userModel');
 const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
 const filterObj = require('../utils/filterObj');
+const factory = require('./handlerFactory');
 
 // Kullanıcnın kendi hesabını günclelemsini sağlar
 exports.updateMe = catchAsync(async (req, res, next) => {
@@ -35,16 +36,16 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
 });
 
 // Bütün kullanıcın bilgilerini al
-exports.getAllUsers = (req, res) => {};
+exports.getAllUsers = factory.getAll(User);
 
 // Yeni kullanıcı oluştur
-exports.createUser = (req, res) => {};
+exports.createUser = factory.createOne(User);
 
 // Kullanıcının hesap bilgilerini al
-exports.getUser = (req, res) => {};
+exports.getUser = factory.getOne(User);
 
 // Adminin Kullanıcyı güncellemesi için
-exports.updateUser = (req, res) => {};
+exports.updateUser = factory.updateOne(User);
 
 // Adminin Kullanıcyı tamamen kaldırması için
-exports.deleteUser = (req, res) => {};
+exports.deleteUser = factory.deleteOne(User);

@@ -173,3 +173,17 @@ phone:5446789223
 # Populate
 
 - Farklı kolleksiyonlar arasında oluşturulan ilişkilerde veriye erişmek için sorgularda kullanılan bir method. Populate, dökümanın içeriende referans olarak tanımlanmış bir alanı id'den yola çıkarak asıl kolleksiyondaki ilgili veriye erişir ve referans olarak tanımlanan id değerini değerinin yerine dökümanın verilerini getirir
+
+# Populate vs Virtual Populate
+
+1. Normal Populate:
+
+- Belirli bir kolleksiyondaki belgelerin referans aracılığı ile faklı bir kolleksiyondaki belgeler ile doldurulmasını sağlar
+
+1. Virtual Populate:
+
+- Normal populat ile benzer işlevi yerine getirir.
+
+- Virtual populate, şemada sanal bir alan oluşturur ve bu alana belirli bir alanın referansları üzerinden diğer belgelerle doldurulur. Virtual alan aslında fiziskel olarak veritabanında ek bir alan eklemek yerine sorgular sırasında otomatik olarak doldurulan bir alan olarak çalışır
+
+- Virtual populate, performans avantajları sağlayabilir. Çünkü veritabanına gereksiz bir alan eklemek yerine sadece ihtiyaç olduğunda doldurulan bir alan sağlar

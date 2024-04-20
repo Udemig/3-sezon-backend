@@ -2,6 +2,7 @@ const Tour = require('../models/tourModel');
 const APIFeatures = require('../utils/apiFeatures');
 const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
+const factory = require('./handlerFactory');
 
 // aylık planı hesaplar
 exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
@@ -102,57 +103,41 @@ exports.getTourStats = catchAsync(async (req, res, next) => {
 });
 
 // bütün turları alır
-exports.getAllTours = catchAsync(async (req, res, next) => {
-  // apiFeatures class'ından örnek oluşturduk ve içerisndeki istediğimiz api özelliklerini çağırdık
-  const features = new APIFeatures(Tour.find(), req.query)
-    .filter()
-    .sort()
-    .limit()
-    .paginate();
-
-  // SON) Hazırldaığımız Komutu Çalıştır Verileri Al
-  const tours = await features.query;
-
-  res.status(200).json({
-    message: 'Veriler başrıyla alındı',
-    results: tours.length,
-    data: tours,
-  });
-});
+exports.getAllTours = factory.getAll(Tour);
 
 // yeni bir tur oluşturur
-exports.createTour = catchAsync(async (req, res, next) => {
-  const newTour = await Tour.create(req.body);
-
-  res.status(200).json({ message: 'Veri başarıyla kaydedildi', data: newTour });
-});
+exports.createTour = factory.createOne(Tour);
 
 // sadece bir tur alır
-exports.getTour = catchAsync(async (req, res, next) => {
-  //* 1.yol) findOne(): id dışarısında değerleri de destekler
-  // const foundTour = await Tour.findOne({ _id: req.params.id });
-
-  //* 2.yol) findById(): sadeceye id'yi destekler
-  const founddTour = await Tour.findById(req.params.id).populate({
-    path: 'guides',
-    select: '-__v -passwordResetExpires -passwordResetToken',
-  });
-
-  res.status(200).json({ message: 'Tur bulundu', data: founddTour });
-});
+exports.getTour = factory.getOne(Tour, 'reviews');
 
 // bir turu günceller
-exports.updateTour = catchAsync(async (req, res, next) => {
-  // new parametresi ile döndürlecek olan değerin dökümanın eski değil yeni değerleri olmasını istedik
-  const updatedTour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-  });
-
-  res.status(200).json({ message: 'Tur güncellendi', data: updatedTour });
-});
+exports.updateTour = factory.updateOne(Tour);
 
 // bir tur kaldırır
-exports.deleteTour = catchAsync(async (req, res, next) => {
-  await Tour.findByIdAndDelete(req.params.id);
-  res.status(204).json({});
-});
+exports.deleteTour = factory.deleteOne(Tour);
+
+// sınırlar içerisndeki turları al
+exports.getToursWithin = async (req, res, next) => {
+  const { latlng, distance, unit } = req.params;
+
+  // enlem ve boylamı değişkenlere aktar
+  const [lat, lng] = latlng.split(',');
+
+  // gelen unite göre yarı çap hesapla
+  const radius = unit == 'mi' ? distance / 3963.2 : distance / 6378.1;
+
+  // merkez noktası gönderilmediyse hata ver
+  if (!lat || !lng) return next(new AppError('Lütfen merkezi tanımlayın'));
+
+  // sınırlar içerisndeki turları al
+  const tours = await Tour.find({
+    startLocation: { $geoWithin: { $centerSphere: [[lat, lng], radius] } },
+  });
+
+  // cevap gönder
+  res.status(200).json({
+    message: 'Verilen sınırlar içersindeki turlar bulundu',
+    tours,
+  });
+};

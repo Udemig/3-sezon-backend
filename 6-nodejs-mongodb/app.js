@@ -3,6 +3,7 @@ const morgan = require('morgan');
 const AppError = require('./utils/appError');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
+const reviewRouter = require('./routes/reviewRoutes');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
@@ -45,6 +46,7 @@ app.use(hpp({ whitelist: ['duration', 'ratingsQuantity'] }));
 // tour ve user route'larını projeye tanıt
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/reviews', reviewRouter);
 
 // tanımlanmayan bir route istek atıldığında hata ver
 app.all('*', (req, res, next) => {
