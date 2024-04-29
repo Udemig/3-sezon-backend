@@ -2,7 +2,10 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import express from 'express';
 import authRouter from './routes/auth.route.js';
+import gigRouter from './routes/gig.route.js';
 import morgan from 'morgan';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
 
 // env dosyasındaki veriler erişmek için kurulum
 dotenv.config();
@@ -19,14 +22,21 @@ mongoose
 const app = express();
 
 //* middlewares
-// bodydeki json içeriğinin okunmasını sağlar
+//a) bodydeki json içeriğinin okunmasını sağlar
 app.use(express.json());
 
-// konsola istekleri yazan middlware
-morgan('dev');
+//b) kendi react uygulmamızdan gelen isteklere cevap vermesine izin ver
+app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
+
+//c) konsola istekleri yazan middlware
+app.use(morgan('dev'));
+
+//d) çerezleri işler ve erişilebilir hale getirir
+app.use(cookieParser());
 
 //* route tanımlama
 app.use('/api/auth', authRouter);
+app.use('/api/gig', gigRouter);
 
 //* hata yönetimi
 // controller'lardan yapılcak tüm yönelndiröeler bu middleware'i tetikler

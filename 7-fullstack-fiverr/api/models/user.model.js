@@ -23,7 +23,7 @@ const userSchema = new Schema(
       type: String,
       required: [true, 'Lütfen şifre alanını belirleyin'],
     },
-    img: {
+    photo: {
       type: String,
     },
     country: {

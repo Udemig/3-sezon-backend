@@ -1,33 +1,135 @@
+import { useState } from 'react';
 import Input from '../components/Input';
 import { toggler } from '../utils/constants';
+import axios from 'axios';
+import api from './../utils/api';
+import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import Button from '../components/Button';
 
 const Register = () => {
-  return (
-    <div>
-      <form className="max-w-sm mx-auto">
-        <Input label="İsim" isReq={true} />
-        <Input label="Mail" isReq={true} />
-        <Input label="Ülke" isReq={true} />
-        <Input label="Şifre" type="password" isReq={true} />
+  const [isSeller, setIsSeller] = useState(false);
 
+  const navigate = useNavigate();
+
+  const upload = async (file) => {
+    // resim değilse hata ver
+    if (!file.type.startsWith('image')) return null;
+
+    // resmi bir formdata içerisne ekle
+    const data = new FormData();
+    data.append('file', file);
+
+    // yüklenme ayarlarını belirle
+    data.append('upload_preset', 'profile');
+
+    try {
+      // api isteği atıp resmi buluta yükle
+      const res = await axios.post(
+        'https://api.cloudinary.com/v1_1/dlpvepgfc/image/upload',
+        data
+      );
+
+      // resmin url'ini fonksiyonun çağrıldığı yere döndür
+      return res.data.url;
+    } catch (err) {
+      alert('fotoğraf yüklenirken bir sorun oluştu');
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // bir formdata örneği oluştur
+    const formData = new FormData(e.target);
+
+    // bütün inputlardaki verilerden bir nesne tanımla
+    const newUser = Object.fromEntries(formData.entries());
+
+    // fotoğrafı bulut depolama alanına yükle
+    const url = await upload(newUser.photo);
+
+    // buluttaki fotoğrafın url'ini nesneye kaydet
+    newUser.photo = url;
+
+    // satıcı ise bunu nesnein içerisne kaydet
+    newUser.isSeller = isSeller;
+
+    // kullanıcı hesabı oluşturmak için api isteği at
+    api
+      .post('/auth/register', newUser)
+      // başarılı olursa
+      .then(() => {
+        // bildirim gönder
+        toast.success('Hesabınız oluşturuldu. Giriş Yapabilrisniz');
+        // logine yönlendir
+        navigate('/login');
+      })
+      // başarısız olursa
+      .catch((err) => {
+        // bildirim gönder
+        toast.error('Bir sorun oluştu' + err.message);
+      });
+  };
+
+  return (
+    <div className="max-w-[900px] mx-auto ">
+      <form
+        className="grid md:grid-cols-2 md:gap-[100px] md:pt-24"
+        onSubmit={handleSubmit}
+      >
         <div>
-          <p>Satıcı Olmak İstiyorum</p>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" value="" className="sr-only peer" />
-            <div className={toggler}></div>
-          </label>
+          <h1 className="text-xl md:text-2xl text-gray-500 font-bold mb-5">
+            Yeni Hesap Oluştur
+          </h1>
+          <Input label="İsim" isReq={true} name={'username'} />
+          <Input label="Mail" isReq={true} name={'email'} />
+          <Input label="Fotoğraf" isReq={true} name={'photo'} type="file" />
+          <Input label="Ülke" isReq={true} name={'country'} />
+          <Input label="Şifre" isReq={true} name={'password'} type="password" />
         </div>
 
-        <Input label="Telefon" type={'number'} />
-        <Input label="Açıklama" />
+        <div>
+          <h1 className="text-xl md:text-2xl text-gray-500 font-bold mb-5">
+            Satıcı Olmak İstiyorum
+          </h1>
 
-        <button
-          type="submit"
-          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center"
-        >
-          Submit
-        </button>
+          <div className="flex gap-5 mb-5">
+            <p>Satıcı hesabını etkinleştir</p>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                onChange={(e) => setIsSeller(e.target.checked)}
+                type="checkbox"
+                className="sr-only peer"
+              />
+              <div className={toggler}></div>
+            </label>
+          </div>
+
+          <Input
+            label="Telefon"
+            type={'number'}
+            name={'phone'}
+            disabled={!isSeller}
+            isReq={isSeller}
+          />
+          <Input
+            label="Açıklama"
+            name={'desc'}
+            disabled={!isSeller}
+            isReq={isSeller}
+          />
+        </div>
+
+        <Button text="Kaydol" />
       </form>
+
+      <p className="mt-5 text-gray-500">
+        Hesabınız var mı?
+        <Link className="ms-3 text-blue-500" to="/login">
+          Giriş Yap
+        </Link>
+      </p>
     </div>
   );
 };
