@@ -4,6 +4,9 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import Gigs from './pages/Gigs';
+import GigDetail from './pages/GigDetail';
+import AddGig from './pages/AddGig';
 
 const App = () => {
   return (
@@ -16,6 +19,9 @@ const App = () => {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/search/gigs" element={<Gigs />} />
+            <Route path="/gig/:id" element={<GigDetail />} />
+            <Route path="/add-gig" element={<AddGig />} />
           </Routes>
         </div>
 

@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 import authRouter from './routes/auth.route.js';
 import gigRouter from './routes/gig.route.js';
+import reviewRouter from './routes/review.route.js';
 import morgan from 'morgan';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -37,6 +38,7 @@ app.use(cookieParser());
 //* route tanımlama
 app.use('/api/auth', authRouter);
 app.use('/api/gig', gigRouter);
+app.use('/api/review', reviewRouter);
 
 //* hata yönetimi
 // controller'lardan yapılcak tüm yönelndiröeler bu middleware'i tetikler

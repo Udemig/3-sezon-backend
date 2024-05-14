@@ -7,6 +7,7 @@ const Input = ({
   type = 'text',
   isReq = false,
   disabled = false,
+  isMulti = false,
 }) => {
   return (
     <div className="mb-5">
@@ -20,6 +21,7 @@ const Input = ({
         placeholder={placeholder}
         required={isReq}
         disabled={disabled}
+        multiple={isMulti}
       />
     </div>
   );

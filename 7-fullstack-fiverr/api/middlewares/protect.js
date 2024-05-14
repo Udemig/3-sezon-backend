@@ -7,6 +7,8 @@ const protect = (req, res, next) => {
   //1) çerezler ile gelen tokene eriş
   const token = req.cookies.accessToken;
 
+  console.log(req.cookies);
+
   //2) token yoksa hata ver
   if (!token) return next(error(403, 'Yetkiniz yok (Token Bulunamadı)'));
 

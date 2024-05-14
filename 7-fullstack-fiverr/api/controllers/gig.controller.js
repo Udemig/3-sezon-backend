@@ -1,15 +1,55 @@
 import error from './../utils/error.js';
 import Gig from '../models/gig.model.js';
 
+// filtreme ayarları oluşturan method
+const buildFilters = (query) => {
+  // filtreleme ayarlarının tanımlandığı nesne oluştur
+  const filters = {};
+
+  if (query.userId) {
+    filters.user = query.userId;
+  }
+
+  if (query.cat) {
+    filters.category = query.cat;
+  }
+
+  if (query.min || query.max) {
+    filters.price = {};
+
+    if (query.min) {
+      filters.price.$gt = query.min;
+    }
+
+    if (query.max) {
+      filters.price.$lt = query.max;
+    }
+  }
+
+  if (query.search) {
+    filters.title = { $regex: query.search, $options: 'i' };
+  }
+
+  // fonksiyonun  çağrıldığı yere ayarları döndür
+  return filters;
+};
+
 // 1) Bütün hizmetleri al
 export const getAllGigs = async (req, res, next) => {
-  try {
-    const gigs = await Gig.find();
+  // filtreme ayarlarını oluşturan fonk. çağır
+  const filters = buildFilters(req.query);
 
-    res.status(200).json({
-      message: 'Hizmetler alındı',
-      gigs,
-    });
+  try {
+    const gigs = await Gig.find(filters).populate('user');
+
+    if (gigs.length > 0) {
+      res.status(200).json({
+        message: 'Hizmetler alındı',
+        gigs,
+      });
+    } else {
+      next(error(404, 'Aratılan kriterlere uygun bir hizmet bulunamadı'));
+    }
   } catch (err) {
     next(error(500, 'Hizmetler alınırken bir sorun oluştu'));
   }
@@ -19,7 +59,7 @@ export const getAllGigs = async (req, res, next) => {
 export const getGig = async (req, res, next) => {
   try {
     // urle param olarak eklenen id den yola çıkarak hizmetin bilgilerine eriş
-    const gig = await Gig.findById(req.params.id);
+    const gig = await Gig.findById(req.params.id).populate('user');
 
     res.status(200).json({
       message: 'Hizmet bullundu',
@@ -60,7 +100,22 @@ export const createGig = async (req, res, next) => {
 
 // 4) Bir hizmeti sil
 export const deleteGig = async (req, res, next) => {
-  res.status(200).json({
-    message: "Backend'den cevap gönderildi",
-  });
+  try {
+    // 1) hizmetin detaylarını al
+    const gig = await Gig.findById(req.params.id);
+
+    // 2) hizmeti oluşturan ve silmek isteyen kullanıcı aynı mı kontrol et
+    if (gig.user != req.userId)
+      return next(
+        error(403, 'Sadece kendi oluştuduğunuz hizmetleri silebilirsiniz')
+      );
+
+    // 3) hizmeti sil
+    await Gig.findByIdAndDelete(req.params.id);
+
+    // 4) client'a cevap gönder
+    res.status(200).json({ message: 'Hizmet başarıyla kaldırıldı' });
+  } catch (err) {
+    return next(error(500, 'Hizmet silinirken bir sorun oluştu'));
+  }
 };

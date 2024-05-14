@@ -1,41 +1,16 @@
 import { useState } from 'react';
 import Input from '../components/Input';
 import { toggler } from '../utils/constants';
-import axios from 'axios';
 import api from './../utils/api';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import Button from '../components/Button';
+import upload from '../utils/upload';
 
 const Register = () => {
   const [isSeller, setIsSeller] = useState(false);
 
   const navigate = useNavigate();
-
-  const upload = async (file) => {
-    // resim değilse hata ver
-    if (!file.type.startsWith('image')) return null;
-
-    // resmi bir formdata içerisne ekle
-    const data = new FormData();
-    data.append('file', file);
-
-    // yüklenme ayarlarını belirle
-    data.append('upload_preset', 'profile');
-
-    try {
-      // api isteği atıp resmi buluta yükle
-      const res = await axios.post(
-        'https://api.cloudinary.com/v1_1/dlpvepgfc/image/upload',
-        data
-      );
-
-      // resmin url'ini fonksiyonun çağrıldığı yere döndür
-      return res.data.url;
-    } catch (err) {
-      alert('fotoğraf yüklenirken bir sorun oluştu');
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();

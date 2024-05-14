@@ -25,6 +25,7 @@ const userSchema = new Schema(
     },
     photo: {
       type: String,
+      default: 'https://picsum.photos/100',
     },
     country: {
       type: String,

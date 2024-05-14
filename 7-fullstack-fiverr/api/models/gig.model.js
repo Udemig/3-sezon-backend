@@ -15,13 +15,11 @@ const gigSchema = new Schema(
       type: String,
       required: [true, 'Lütfen desc tanımlayın'],
     },
-    avgRating: {
+    reviewCount: {
       type: Number,
-      min: 1,
-      max: 5,
-      default: 3,
+      default: 0,
     },
-    totalRating: {
+    starCount: {
       type: Number,
       default: 0,
     },
@@ -66,7 +64,14 @@ const gigSchema = new Schema(
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
 );
+
+// ortlama ratingi veritbanında tutmaya gerek olmadığından zaten tutlan iki değerin hesaplanması sonuccu ortya çıktığı için get isteklerinde client'a göndermeden önce ortlamayı hesaplayıp ekliyecez
+gigSchema.virtual('avgRating').get(function () {
+  return (this.starCount / this.reviewCount).toFixed(2);
+});
 
 export default model('Gig', gigSchema);

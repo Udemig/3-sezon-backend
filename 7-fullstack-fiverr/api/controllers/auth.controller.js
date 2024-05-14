@@ -59,6 +59,7 @@ export const login = async (req, res, next) => {
       .status(200)
       .cookie('accessToken', token, {
         httpOnly: true,
+        sameSite: 'none',
       })
       .json({
         message: 'Hesaba giriş yapıldı',

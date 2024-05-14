@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import api from './../utils/api';
+import { CiSearch } from 'react-icons/ci';
 
 const Header = () => {
   const user = JSON.parse(localStorage.getItem('user'));
@@ -13,12 +14,38 @@ const Header = () => {
     });
   };
 
+  // aratılma durumunda
+  const handleSearch = (e) => {
+    // sayfa yenilemeyi engelle
+    e.preventDefault();
+
+    // aratılan kelimeyi al
+    const text = e.target[0].value;
+
+    // kullanıcyı hizmetler sayfasına yönlendir
+    navigate(`/search/gigs?query=${text}`);
+  };
+
   return (
     <header className="p-5 shadow">
-      <div className="max-w-[1440px] mx-auto flex justify-between">
+      <div className="max-w-[1440px] mx-auto flex justify-between gap-4 md:gap-8">
         <Link to={'/'}>
           <img className="w-[100px]" src="/fiverr.png" alt="logo" />
         </Link>
+
+        <form
+          onSubmit={handleSearch}
+          className="flex-1 flex border rounded max-w-[600px]"
+        >
+          <input
+            className="w-full h-full  px-3  outline-none"
+            placeholder="Hizmetleri ara.."
+            type="search"
+          />
+          <button className="max-md:hidden bg-black p-2 rounded-md text-white text-xl">
+            <CiSearch />
+          </button>
+        </form>
 
         <div className="flex items-center gap-2 group relative">
           {user ? (
@@ -32,10 +59,16 @@ const Header = () => {
               <div className="w-[110px] text-[13px] hidden group-hover:flex  flex-col absolute top-[40px] left-[0px] transition bg-gray-200 rounded-md">
                 {user.isSeller && (
                   <>
-                    <Link className="px-5 py-2 hover:bg-gray-100">
+                    <Link
+                      to={'/my-gigs'}
+                      className="px-5 py-2 hover:bg-gray-100"
+                    >
                       Hizmetler
                     </Link>
-                    <Link className="px-5 py-2 hover:bg-gray-100">
+                    <Link
+                      to={'/add-gig'}
+                      className="px-5 py-2 hover:bg-gray-100"
+                    >
                       Hizmet Ekle
                     </Link>
                   </>
