@@ -1,8 +1,14 @@
-import Input from '../components/Input';
-import { inputs } from '../utils/constants';
-import upload from '../utils/upload';
+import Input from "../components/Input";
+import { inputs } from "../utils/constants";
+import upload from "../utils/upload";
+import api from "../utils/api";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const AddGig = () => {
+  const navigate = useNavigate();
+
+  // form gönderilince
   const handleSubmit = async (e) => {
     // sayfayı yenilemeyi engelle
     e.preventDefault();
@@ -25,12 +31,21 @@ const AddGig = () => {
     gigData.images = imageUrls;
 
     // özellikler alnındaki metni "," göre diziye çevir
+    gigData.features = gigData.features.split(",");
 
     // api'a veriyi kaydet
-
-    // hizmet detay sayfasına yöneldnir
-
-    // bildirim ver
+    api
+      .post("/gig", gigData)
+      .then((res) => {
+        // hizmet detay sayfasına yönlendir
+        navigate(`/gig/${res.data.gig._id}`);
+        // bildirim ver
+        toast.success(`Hizmet oluşturuldu`);
+      })
+      .catch((err) => {
+        console.log(err);
+        toast.error(`Bir hata oluştu`);
+      });
   };
   return (
     <div>

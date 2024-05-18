@@ -1,12 +1,13 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Home from './pages/Home';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Header from './components/Header';
-import Footer from './components/Footer';
-import Gigs from './pages/Gigs';
-import GigDetail from './pages/GigDetail';
-import AddGig from './pages/AddGig';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import Gigs from "./pages/Gigs";
+import GigDetail from "./pages/GigDetail";
+import AddGig from "./pages/AddGig";
+import MyGigs from "./pages/MyGigs";
 
 const App = () => {
   return (
@@ -22,6 +23,7 @@ const App = () => {
             <Route path="/search/gigs" element={<Gigs />} />
             <Route path="/gig/:id" element={<GigDetail />} />
             <Route path="/add-gig" element={<AddGig />} />
+            <Route path="/my-gigs" element={<MyGigs />} />
           </Routes>
         </div>
 

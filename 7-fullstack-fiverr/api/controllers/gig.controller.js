@@ -1,5 +1,5 @@
-import error from './../utils/error.js';
-import Gig from '../models/gig.model.js';
+import error from "./../utils/error.js";
+import Gig from "../models/gig.model.js";
 
 // filtreme ayarları oluşturan method
 const buildFilters = (query) => {
@@ -27,7 +27,11 @@ const buildFilters = (query) => {
   }
 
   if (query.search) {
-    filters.title = { $regex: query.search, $options: 'i' };
+    filters.title = { $regex: query.search, $options: "i" };
+  }
+
+  if (query.userId) {
+    filters.user = query.userId;
   }
 
   // fonksiyonun  çağrıldığı yere ayarları döndür
@@ -40,18 +44,18 @@ export const getAllGigs = async (req, res, next) => {
   const filters = buildFilters(req.query);
 
   try {
-    const gigs = await Gig.find(filters).populate('user');
+    const gigs = await Gig.find(filters).populate("user");
 
     if (gigs.length > 0) {
       res.status(200).json({
-        message: 'Hizmetler alındı',
+        message: "Hizmetler alındı",
         gigs,
       });
     } else {
-      next(error(404, 'Aratılan kriterlere uygun bir hizmet bulunamadı'));
+      next(error(404, "Aratılan kriterlere uygun bir hizmet bulunamadı"));
     }
   } catch (err) {
-    next(error(500, 'Hizmetler alınırken bir sorun oluştu'));
+    next(error(500, "Hizmetler alınırken bir sorun oluştu"));
   }
 };
 
@@ -59,10 +63,10 @@ export const getAllGigs = async (req, res, next) => {
 export const getGig = async (req, res, next) => {
   try {
     // urle param olarak eklenen id den yola çıkarak hizmetin bilgilerine eriş
-    const gig = await Gig.findById(req.params.id).populate('user');
+    const gig = await Gig.findById(req.params.id).populate("user");
 
     res.status(200).json({
-      message: 'Hizmet bullundu',
+      message: "Hizmet bullundu",
       gig: gig,
     });
   } catch (err) {
@@ -75,7 +79,7 @@ export const getGig = async (req, res, next) => {
 export const createGig = async (req, res, next) => {
   // kullanıcı satıcı değilse hata gönder
   if (!req.isSeller)
-    return next(error(403, 'Sadece satıcılar hizmet oluşturabilir'));
+    return next(error(403, "Sadece satıcılar hizmet oluşturabilir"));
 
   // yeni hizmet oluştur
   const newGig = new Gig({
@@ -89,12 +93,12 @@ export const createGig = async (req, res, next) => {
 
     // client'a cevap gönder
     res.status(200).json({
-      message: 'Hizmet başarıyla oluşturuldu',
+      message: "Hizmet başarıyla oluşturuldu",
       gig: savedGig,
     });
   } catch (err) {
     console.log(err);
-    next(error(500, 'Hizmet oluşturulurken bir sorun oluştu'));
+    next(error(500, "Hizmet oluşturulurken bir sorun oluştu"));
   }
 };
 
@@ -107,15 +111,15 @@ export const deleteGig = async (req, res, next) => {
     // 2) hizmeti oluşturan ve silmek isteyen kullanıcı aynı mı kontrol et
     if (gig.user != req.userId)
       return next(
-        error(403, 'Sadece kendi oluştuduğunuz hizmetleri silebilirsiniz')
+        error(403, "Sadece kendi oluştuduğunuz hizmetleri silebilirsiniz")
       );
 
     // 3) hizmeti sil
     await Gig.findByIdAndDelete(req.params.id);
 
     // 4) client'a cevap gönder
-    res.status(200).json({ message: 'Hizmet başarıyla kaldırıldı' });
+    res.status(200).json({ message: "Hizmet başarıyla kaldırıldı" });
   } catch (err) {
-    return next(error(500, 'Hizmet silinirken bir sorun oluştu'));
+    return next(error(500, "Hizmet silinirken bir sorun oluştu"));
   }
 };
