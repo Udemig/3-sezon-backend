@@ -1,6 +1,6 @@
 "use client";
 
-import { data } from "@/app/gallery/constants";
+import { data } from "../../../constants";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useRef } from "react";

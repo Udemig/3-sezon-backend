@@ -12,18 +12,27 @@ export function GET(req, { params }) {
   return Response.json("Aradığınız ürün bulunamadı");
 }
 
-export function POST(req, res) {
-  return Response.json({ status: "POST Başarılı" });
+export function DELETE(req, { params }) {
+  const filtred = products.filter((i) => i.id != params.id);
+
+  return Response.json({
+    message: "Başarıyla silindi",
+    data: filtred,
+  });
 }
 
-export function PUT(req, res) {
-  return Response.json({ status: "PUT Başarılı" });
-}
+export async function PATCH(req, { params }) {
+  // isteğin body ksımındaki veriye eriş
+  const body = await req.json();
 
-export function PATCH(req, res) {
-  return Response.json({ status: "PATCH Başarılı" });
-}
+  // id'sinde güncellenicek elemanın bütün diziki sırasını bul
+  const index = products.findIndex((i) => i.id == params.id);
 
-export function DELETE(req, res) {
-  return Response.json({ status: "DELETE Başarılı" });
+  // dizikdei elemanı günelle
+  products[index].price = body.price;
+
+  return Response.json({
+    status: "Veri güncellendi",
+    data: products,
+  });
 }

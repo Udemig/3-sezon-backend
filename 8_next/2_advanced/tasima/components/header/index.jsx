@@ -1,4 +1,4 @@
-import { getData } from "@/app/utils";
+import { getData } from "../../utils";
 
 // Next.js yapılan api isteğinden sonra biz aksini belirtmedikçe aldığı cevabı cache'ler ver yapılacak ilerik isteklerde api'a gitmek yerine daha önceden aldığı cevabı bize iletir. Bundan dolayı örneğin kullanıcı verilerini çeken bu fonksiyonu kullancı verisini istediğimiz her bileşenden çağırabiliriz. 100 bileşende bile çağırsak nextjs arkaplanda tek bir api isteği atıcak
 const Header = async () => {
