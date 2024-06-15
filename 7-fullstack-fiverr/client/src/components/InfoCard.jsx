@@ -10,7 +10,7 @@ const InfoCard = ({ title, text }) => {
 
       <p className="text-gray-500">{text}</p>
     </div>
-  );
+  ); 
 };
 
 export default InfoCard;
