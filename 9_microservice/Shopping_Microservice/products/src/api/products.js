@@ -1,10 +1,9 @@
 const ProductService = require("../services/product-service");
-const CustomerService = require("../services/customer-service");
 const UserAuth = require("./middlewares/auth");
+const { PublishCustomerEvents, PublishShoppingEvents } = require("../utils");
 
 module.exports = (app) => {
   const service = new ProductService();
-  const customerService = new CustomerService();
 
   app.post("/product/create", async (req, res, next) => {
     try {
@@ -63,10 +62,20 @@ module.exports = (app) => {
     const { _id } = req.user;
 
     try {
-      const product = await service.GetProductById(req.body._id);
-      const wishList = await customerService.AddToWishlist(_id, product);
-      return res.status(200).json(wishList);
-    } catch (err) {}
+      // customer api'na göndeirlcek haberi hazırla
+      const { data } = await service.GetProductPayload(
+        _id,
+        { productId: req.body._id, qty: 1 },
+        "ADD_TO_WISHLIST"
+      );
+
+      // cutomer api'na istek listesine ürünü eklemesi için haber gönder
+      PublishCustomerEvents(data);
+
+      return res.status(200).json(data.data.product);
+    } catch (err) {
+      console.log("HATA", err);
+    }
   });
 
   app.delete("/wishlist/:id", UserAuth, async (req, res, next) => {
@@ -74,28 +83,47 @@ module.exports = (app) => {
     const productId = req.params.id;
 
     try {
-      const product = await service.GetProductById(productId);
-      const wishlist = await customerService.AddToWishlist(_id, product);
-      return res.status(200).json(wishlist);
+      // customer api'na göndeirlcek haberi hazırla
+      const { data } = await service.GetProductPayload(
+        _id,
+        { productId },
+        "REMOVE_FROM_WISHLIST"
+      );
+
+      // customer apina favori çıkarması için haber gönder
+      PublishCustomerEvents(data);
+
+      return res.status(200).json(data.data.product);
     } catch (err) {
       next(err);
     }
   });
 
   app.put("/cart", UserAuth, async (req, res, next) => {
-    const { _id, qty } = req.body;
+    const { _id } = req.user;
 
     try {
-      const product = await service.GetProductById(_id);
-
-      const result = await customerService.ManageCart(
-        req.user._id,
-        product,
-        qty,
-        false
+      //  api'lara göndeirlcek haberi hazırla
+      const { data } = await service.GetProductPayload(
+        _id,
+        { productId: req.body._id, qty: req.body.qty },
+        "ADD_TO_CART"
       );
 
-      return res.status(200).json(result);
+
+      // customer apina sepete eklemsi için haber gönder
+      PublishCustomerEvents(data);
+
+      // shopping apina sepet eklenme haberini gönder
+      PublishShoppingEvents(data);
+
+      // return edilcek veriyi beilrle
+      const response = {
+        product: data.data.product,
+        unit: data.data.qty,
+      };
+
+      return res.status(200).json(response);
     } catch (err) {
       next(err);
     }
@@ -105,9 +133,26 @@ module.exports = (app) => {
     const { _id } = req.user;
 
     try {
-      const product = await service.GetProductById(req.params.id);
-      const result = await customerService.ManageCart(_id, product, 0, true);
-      return res.status(200).json(result);
+      //  api'lara göndeirlcek haberi hazırla
+      const { data } = await service.GetProductPayload(
+        _id,
+        { productId: req.params.id },
+        "REMOVE_FROM_CART"
+      );
+
+      // customer apina sepete eklemsi için haber gönder
+      PublishCustomerEvents(data);
+
+      // shopping apina sepet eklenme haberini gönder
+      PublishShoppingEvents(data);
+
+      // return edilcek veriyi beilrle
+      const response = {
+        product: data.data.product,
+        unit: data.data.qty,
+      };
+
+      return res.status(200).json(response);
     } catch (err) {
       next(err);
     }

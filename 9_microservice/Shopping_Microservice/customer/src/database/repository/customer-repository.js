@@ -146,13 +146,13 @@ class CustomerRepository {
     }
   }
 
-  async AddCartItem(customerId, { _id, names, price, banner }, qty, isRemove) {
+  async AddCartItem(customerId, { _id, name, price, banner }, qty, isRemove) {
     try {
       const profile = await CustomerModel.findById(customerId).populate("cart");
 
       if (profile) {
         const cartItem = {
-          product: { _id, names, price, banner }, // referanstan emebeddinge geçiş için güncelleme
+          product: { _id, name, price, banner }, // referanstan emebeddinge geçiş için güncelleme
           unit: qty,
         };
 
@@ -161,7 +161,7 @@ class CustomerRepository {
         if (cartItems.length > 0) {
           let isExist = false;
           cartItems.map((item) => {
-            if (item.product._id.toString() === product._id.toString()) {
+            if (item.product._id.toString() === _id.toString()) {
               if (isRemove) {
                 cartItems.splice(cartItems.indexOf(item), 1);
               } else {

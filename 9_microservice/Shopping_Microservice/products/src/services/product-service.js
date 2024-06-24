@@ -70,6 +70,23 @@ class ProductService {
       throw new APIError("Data Not found");
     }
   }
+
+  async GetProductPayload(userId, { productId, qty }, event) {
+    // id si bilenen ürünün bilgilerini al
+    const product = await this.repository.FindById(productId);
+
+    // eğer ürün varsa gönderilcek olan payloadı hazırla
+    if (product) {
+      const payload = {
+        event,
+        data: { userId, product, qty },
+      };
+
+      return FormateData(payload);
+    } else {
+      return FormateData({ error: "No products avilable" });
+    }
+  }
 }
 
 module.exports = ProductService;
