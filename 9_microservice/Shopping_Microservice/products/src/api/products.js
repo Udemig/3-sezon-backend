@@ -1,8 +1,9 @@
 const ProductService = require("../services/product-service");
 const UserAuth = require("./middlewares/auth");
-const { PublishCustomerEvents, PublishShoppingEvents } = require("../utils");
+const { PublishMessage } = require("../utils");
+const { SHOPPING_BINDING_KEY, CUSTOMER_BINDING_KEY } = require("../config");
 
-module.exports = (app) => {
+module.exports = (app, channel) => {
   const service = new ProductService();
 
   app.post("/product/create", async (req, res, next) => {
@@ -70,7 +71,8 @@ module.exports = (app) => {
       );
 
       // cutomer api'na istek listesine ürünü eklemesi için haber gönder
-      PublishCustomerEvents(data);
+      // PublishCustomerEvents(data);
+      PublishMessage(channel, CUSTOMER_BINDING_KEY, JSON.stringify(data));
 
       return res.status(200).json(data.data.product);
     } catch (err) {
@@ -91,7 +93,8 @@ module.exports = (app) => {
       );
 
       // customer apina favori çıkarması için haber gönder
-      PublishCustomerEvents(data);
+      // PublishCustomerEvents(data);
+      PublishMessage(channel, CUSTOMER_BINDING_KEY, JSON.stringify(data));
 
       return res.status(200).json(data.data.product);
     } catch (err) {
@@ -110,12 +113,11 @@ module.exports = (app) => {
         "ADD_TO_CART"
       );
 
-
       // customer apina sepete eklemsi için haber gönder
-      PublishCustomerEvents(data);
+      PublishMessage(channel, CUSTOMER_BINDING_KEY, JSON.stringify(data));
 
       // shopping apina sepet eklenme haberini gönder
-      PublishShoppingEvents(data);
+      PublishMessage(channel, SHOPPING_BINDING_KEY, JSON.stringify(data));
 
       // return edilcek veriyi beilrle
       const response = {
@@ -141,10 +143,10 @@ module.exports = (app) => {
       );
 
       // customer apina sepete eklemsi için haber gönder
-      PublishCustomerEvents(data);
+      PublishMessage(channel, CUSTOMER_BINDING_KEY, JSON.stringify(data));
 
       // shopping apina sepet eklenme haberini gönder
-      PublishShoppingEvents(data);
+      PublishMessage(channel, SHOPPING_BINDING_KEY, JSON.stringify(data));
 
       // return edilcek veriyi beilrle
       const response = {

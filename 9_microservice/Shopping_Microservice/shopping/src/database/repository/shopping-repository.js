@@ -50,7 +50,7 @@ class ShoppingRepository {
 
         if (cartItems.length > 0) {
           cartItems.map((item) => {
-            if (item.product._id.toString() === _id.toString()) {
+            if (item.product._id?.toString() === _id.toString()) {
               if (isRemove) {
                 cartItems.splice(cartItems.indexOf(item), 1);
               } else {
@@ -77,16 +77,14 @@ class ShoppingRepository {
       throw new APIError(
         "API Error",
         STATUS_CODES.INTERNAL_ERROR,
-        "Unable to Create Customer"
+        "Unable to Create Cart Item"
       );
     }
   }
 
   async CreateNewOrder(customerId, txnId) {
-    //check transaction for payment Status
-
     try {
-      const cart = await CartModel.findById({ customerId });
+      const cart = await CartModel.findOne({ customerId: customerId });
 
       if (cart) {
         let amount = 0;
@@ -122,6 +120,7 @@ class ShoppingRepository {
 
       return {};
     } catch (err) {
+      console.log("DETAYLI HATA", err);
       throw APIError(
         "API Error",
         STATUS_CODES.INTERNAL_ERROR,

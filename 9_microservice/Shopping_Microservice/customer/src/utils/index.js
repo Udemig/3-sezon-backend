@@ -1,7 +1,13 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-
-const { APP_SECRET } = require("../config");
+const amqplib = require("amqplib");
+const {
+  APP_SECRET,
+  MESSAGE_BROKER_URL,
+  EXCHANGE_NAME,
+  QUEUE_NAME,
+  CUSTOMER_BINDING_KEY,
+} = require("../config");
 
 //Utility functions
 module.exports.GenerateSalt = async () => {
@@ -48,4 +54,39 @@ module.exports.FormateData = (data) => {
   } else {
     throw new Error("Data Not found!");
   }
+};
+
+/*---------------* Message Broker Kurulum *-------------------*/
+
+// kanal oluştur
+module.exports.CreateChannel = async () => {
+  try {
+    // RabbitMQ'ya bir bağlantı oluşturur
+    const connection = await amqplib.connect(MESSAGE_BROKER_URL);
+    // Bir kanal oluşturur
+    const channel = await connection.createChannel();
+    // Kuyruğu ayarla
+    await channel.assertExchange(EXCHANGE_NAME, "direct", false);
+    // Kanalı döner
+    return channel;
+  } catch (err) {
+    throw err;
+  }
+};
+
+// mesajlara abone ol
+module.exports.SubscribeMessage = async (channel, service) => {
+  // Geçici ve benzersiz bir kuyruk oluşturur
+  const appQueue = await channel.assertQueue(QUEUE_NAME);
+
+  // Kuyruğu belirli bir routing keye bağlar
+  channel.bindQueue(appQueue.queue, EXCHANGE_NAME, CUSTOMER_BINDING_KEY);
+
+  // Kuyruktaki mesajları al
+  channel.consume(appQueue.queue, (data) => {
+    console.log("kuyruktaki veri alındı 🙂");
+    console.log(data.content.toString());
+    service.SubscribeEvents(data.content.toString());
+    channel.ack(data);
+  });
 };

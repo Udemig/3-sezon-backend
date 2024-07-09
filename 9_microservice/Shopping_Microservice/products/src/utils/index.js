@@ -1,7 +1,7 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const axios = require("axios");
-const { APP_SECRET } = require("../config");
+const amqplib = require("amqplib");
+const { APP_SECRET, MESSAGE_BROKER_URL, EXCHANGE_NAME } = require("../config");
 
 //Utility functions
 module.exports.GenerateSalt = async () => {
@@ -50,16 +50,47 @@ module.exports.FormateData = (data) => {
   }
 };
 
-// cutomer api ile haberleşmeyi sağlayıcak
-module.exports.PublishCustomerEvents = (payload) => {
-  axios.post("http://127.0.0.1:8000/customer/app-events", {
-    payload,
-  });
+/*---------------* Message Broker Kurulum *-------------------*/
+
+// kanal oluştur
+module.exports.CreateChannel = async () => {
+  try {
+    // RabbitMQ'ya bir bağlantı oluşturur
+    const connection = await amqplib.connect(MESSAGE_BROKER_URL);
+    // Bir kanal oluşturur
+    const channel = await connection.createChannel();
+    // Kuyruğu ayarla
+    await channel.assertExchange(EXCHANGE_NAME, "direct", false);
+    // Kanalı döner
+    return channel;
+  } catch (err) {
+    throw err;
+  }
 };
 
-// shopping api ile haberleşmeyi sağla
-module.exports.PublishShoppingEvents = (payload) => {
-  axios.post("http://127.0.0.1:8000/shopping/app-events", {
-    payload,
+// mesaj yayınla
+module.exports.PublishMessage = async (channel, service, message) => {
+  try {
+    // mesajı kanalda yayınlar
+    await channel.publish(EXCHANGE_NAME, service, Buffer.from(message));
+    console.log("Mesaj Gönderildi 🤩", message);
+  } catch (err) {
+    throw err;
+  }
+};
+
+// mesajlara abone ol
+module.exports.SubscribeMessage = async (channel, service, binding_key) => {
+  // Geçici ve benzersiz bir kuyruk oluşturur
+  const appQueue = await channel.assertQueue(QUEUE_NAME);
+
+  // Kuyruğu belirli bir routing keye bağlar
+  channel.bindQueue(appQueue.queue, EXCHANGE_NAME, binding_key);
+
+  // Kuyruktaki mesajları al
+  channel.consume(appQueue.queue, (data) => {
+    console.log("kuyruktaki veri alındı 🙂");
+    console.log(data.content.toString());
+    channel.ack(data);
   });
 };
